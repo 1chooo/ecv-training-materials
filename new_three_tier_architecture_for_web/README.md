@@ -1,6 +1,6 @@
 # New - Three-Tier Architecture for Web
 
-## Chapter 1 - Core Knowledge
+## [Chapter 1 - Core Knowledge](./01_core_knowledge)
 - What's behind a web?
 - What's behind one action?
 - Three-Tier Infrastructure
@@ -14,7 +14,7 @@
 - Shared Responsibility Model
 
 
-## Chapter 2 - Simple Storage Service (S3)
+## [Chapter 2 - Simple Storage Service (S3): Host a Static Website (Presentation Layer)](./02_s3/)
 - Chapter Overview
 - Introduction of S3
 - Move Data to S3
