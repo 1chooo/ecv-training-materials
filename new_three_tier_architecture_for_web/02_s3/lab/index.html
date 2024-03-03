@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<!-- saved from url=(0119)https://content.ecloudture.com/aws/lab/aws-standard-workshop/hosting-a-static-website-on-amazon-s3/materials/index.html -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <style>
+      body {
+        margin: 0;
+        background: -webkit-linear-gradient(left, #c3552f, #cd7233, #d88f3a);
+        background: -moz-linear-gradient(left, #c3552f, #cd7233, #f19914);
+        background: -o-linear-gradient(left, #c3552f, #cd7233, #f19914);
+        background: linear-gradient(left, #c3552f, #cd7233, #f19914);
+        background-position: center top;
+        background-size: 100% auto;
+      }
+      .topnav {
+        overflow: hidden;
+        background-color: #333;
+      }
+      .topnav a {
+        float: left;
+        display: block;
+        color: #f2f2f2;
+        text-align: center;
+        padding: 14px 16px;
+        text-decoration: none;
+        font-size: 17px;
+      }
+      .topnav a:hover {
+        background-color: #ddd;
+        color: black;
+      }
+      .topnav a.active {
+        background-color: #bb5500;
+        color: white;
+      }
+      .topnav a.login {
+        float: right;
+      }
+    </style>
+    <script>
+      function callAPI() {
+        var httpReq = new XMLHttpRequest();
+
+        httpReq.open("GET", "<YOUR_API_GATEWAY_ENDPOINT>", true); //true for async
+        httpReq.send(null);
+        httpReq.onreadystatechange = function() {
+          if (httpReq.readyState == 4 && httpReq.status == 200) {
+            console.log(httpReq.responseText);
+            alert(httpReq.responseText);
+          }
+        };
+      }
+    </script>
+  </head>
+  <body>
+    <!-- Navigation -->
+    <nav class="topnav">
+      <a href="https://content.ecloudture.com/aws/lab/aws-standard-workshop/hosting-a-static-website-on-amazon-s3/materials/index.htm" class="active">Home</a>
+      <a href="https://www.ecloudture.com/">eCloudture</a>
+      <a href="https://www.ecloudvalley.com/">eCloudvalley</a>
+    </nav>
+
+    <!-- Main -->
+    <div style="text-align: center;">
+      <h2 style="font-size: 104px; color:white;margin-bottom: 12px">
+        <i>Welcome.</i>
+      </h2>
+    <!--  <button onclick="callAPI()">Check it out!</button> -->
+    </div>
+  
+
+<div id="gpa_calculator_for_ncu"></div></body></html>
