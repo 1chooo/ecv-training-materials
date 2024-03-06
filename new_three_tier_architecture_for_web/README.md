@@ -44,3 +44,16 @@
 - [MOCK] What's Wrong with My Server
 
 
+## Chapter 4 - Database
+- Database Introduction
+- AWS Database Solution
+- Introduction of RDS - Overview
+- Introduction of RDS - Optimize RDS Performance
+- Introduction of RDS - Data Protection on RDS
+- Introduction of RDS - Maintenance
+- Amazon Aurora
+- Introduction of DynamoDB - Overview
+- Introduction of DynamoDB - Query Data
+- Introduction of DynamoDB - Streaming Data
+- Move data to database on AWS
+- [LAB] Implement an LAMP structure
