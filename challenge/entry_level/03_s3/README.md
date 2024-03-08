@@ -19,8 +19,8 @@ Your organization is planning to start using AWS. The initial plan is to back up
       },
       "Action": "s3:GetObject",
       "Resource": [
-        "arn:aws:s3:::challenge-s3-bucket-for-backup-hugo",
-        "arn:aws:s3:::challenge-s3-bucket-for-backup-hugo/*"
+        "arn:aws:s3:::challenge-s3-bucket-for-backup-hugo-will-get-aws-offer",
+        "arn:aws:s3:::challenge-s3-bucket-for-backup-hugo-will-get-aws-offer/*"
       ]
     }
   ]
@@ -36,58 +36,93 @@ Your organization is planning to start using AWS. The initial plan is to back up
 
 ```json
 {
-  "Version": "2012-10-177",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Principal": {
-        "Service": "lambda.amazonaws.com"
-      },
-      "Action": "s3:GetObject",
-      "Resource": [
-        "arn:aws:s3:::challenge-s3-bucket-for-backup-hugo",
-        "arn:aws:s3:::challenge-s3-bucket-for-backup-hugo/*"
-      ]
-    },
-    {
-      "Effect": "Deny",
-      "Principal": {
-        "Service": "lambda.amazonaws.com"
-      },
-      "Action": "s3:PutObject",
-      "Resource": [
-        "arn:aws:s3:::challenge-s3-bucket-for-backup-hugo",
-        "arn:aws:s3:::challenge-s3-bucket-for-backup-hugo/*"
-      ]
-    },
-    {
-      "Effect": "Allow",
-      "Principal": "*",
-      "Action": "s3:GetObject",
-      "Resource": [
-        "arn:aws:s3:::challenge-s3-bucket-for-backup-hugo",
-        "arn:aws:s3:::challenge-s3-bucket-for-backup-hugo/*"
-      ],
-      "Condition": {
-        "IpAddress": {
-          "aws:SourceIp": "12.34.56.78/32"
-        }
-      }
-    },
-    {
-      "Effect": "Deny",
-      "Principal": "*",
-      "Action": "s3:PutObject",
-      "Resource": [
-        "arn:aws:s3:::challenge-s3-bucket-for-backup-hugo",
-        "arn:aws:s3:::challenge-s3-bucket-for-backup-hugo/*"
-      ],
-      "Condition": {
-        "IpAddress": {
-          "aws:SourceIp": "87.65.43.21/32"
-        }
-      }
-    }
-  ]
+	"Version": "2012-10-17",
+	"Statement": [
+		{
+			"Effect": "Allow",
+			"Principal": {
+				"Service": "lambda.amazonaws.com"
+			},
+			"Action": "s3:GetObject",
+			"Resource": [
+				"arn:aws:s3:::<YOUR_BUCKET_NAME>",
+				"arn:aws:s3:::<YOUR_BUCKET_NAME>/*"
+			]
+		},
+		{
+			"Effect": "Deny",
+			"Principal": {
+				"Service": "lambda.amazonaws.com"
+			},
+			"Action": "s3:PutObject",
+			"Resource": [
+				"arn:aws:s3:::<YOUR_BUCKET_NAME>",
+				"arn:aws:s3:::<YOUR_BUCKET_NAME>/*"
+			]
+		},
+		{
+			"Effect": "Allow",
+			"Principal": "*",
+			"Action": "s3:GetObject",
+			"Resource": [
+				"arn:aws:s3:::<YOUR_BUCKET_NAME>",
+				"arn:aws:s3:::<YOUR_BUCKET_NAME>/*"
+			],
+			"Condition": {
+				"IpAddress": {
+					"aws:SourceIp": "12.34.56.78/32"
+				}
+			}
+		},
+		{
+			"Effect": "Deny",
+			"Principal": "*",
+			"Action": "s3:Put*",
+			"Resource": [
+				"arn:aws:s3:::<YOUR_BUCKET_NAME>",
+				"arn:aws:s3:::<YOUR_BUCKET_NAME>/*"
+			],
+			"Condition": {
+				"IpAddress": {
+					"aws:SourceIp": "87.65.43.21/32"
+				}
+			}
+		}
+	],
+	"Transform": "AWS::Serverless-2016-10-31",
+	"Resources": {
+		"ServiceNetworkServiceAssociation": {
+			"Type": "AWS::VpcLattice::ServiceNetworkServiceAssociation",
+			"Properties": {}
+		},
+		"Function": {
+			"Type": "AWS::Serverless::Function",
+			"Properties": {
+				"Description": {
+					"Fn::Sub": [
+						"Stack ${AWS::StackName} Function ${ResourceName}",
+						{
+							"ResourceName": "Function"
+						}
+					]
+				},
+				"CodeUri": "src/Function",
+				"Handler": "index.handler",
+				"Runtime": "nodejs20.x",
+				"MemorySize": 3008,
+				"Timeout": 30,
+				"Tracing": "Active"
+			}
+		},
+		"FunctionLogGroup": {
+			"Type": "AWS::Logs::LogGroup",
+			"DeletionPolicy": "Retain",
+			"Properties": {
+				"LogGroupName": {
+					"Fn::Sub": "/aws/lambda/${Function}"
+				}
+			}
+		}
+	}
 }
 ```
