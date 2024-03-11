@@ -131,7 +131,7 @@ docker run --name nginx_1 -p 80:80 nginx
 
 ### Conclusion and Research
 
-#### Downgrade/Upgrade Docker Version on Windows Server [^2]
+#### Downgrade/Upgrade Docker Version on Windows Server [^1], [^2]
 
 Change the `-RequiredVersion` to the version you want to downgrade to or upgrade to.
 
@@ -144,7 +144,7 @@ Then restart the docker service
 Restart-Service docker
 ```
 
-#### Downgrade nginx version to mate the docker version
+#### Downgrade nginx version to mate the docker version [^3]
 
 ```powershell
 docker pull nginx:<OLD_NGINX_VERSION>
