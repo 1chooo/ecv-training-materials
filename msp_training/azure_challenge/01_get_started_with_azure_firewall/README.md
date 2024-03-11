@@ -33,7 +33,7 @@ Firewall IP Configuration:
 
 ### Virtual Machine 1
 ```bash
-ssh <your vm1 user name>@<your firewall public IP>
+$ ssh <your vm1 user name>@<your firewall public IP>
 ```
 
 ```bash
@@ -78,7 +78,7 @@ HTTP/1.1 200 OK
 ```
 
 ```bash
-$  curl -I www.microsoft.com
+$ curl -I www.microsoft.com
 HTTP/1.1 200 OK
 ...
 ```
@@ -86,7 +86,7 @@ HTTP/1.1 200 OK
 ### Virtual Machine 2
 
 ```bash
-ssh -p 23 <your vm1 user name>@<your firewall public IP>
+$ ssh -p 23 <your vm1 user name>@<your firewall public IP>
 ```
 
 ```bash
@@ -128,7 +128,7 @@ See "man sudo_root" for details.
 ```
 
 ```bash
-curl -I 142.250.80.36
+$ curl -I 142.250.80.36
 HTTP/1.1 301 Moved Permanently
 ...
 ```
