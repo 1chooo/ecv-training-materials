@@ -1,5 +1,25 @@
 # ECV Internship Daily Journal
 
+### 2023/03/11
+
+In the morning, complete the 2024 MSP Intern training - Get Started with Azure Firewall. The training is about how to create the virtual network, virtual wan, and virtual machine. Then create the Azure Firewall in the virtual wan. Finally, create the firewall policy for filtering the traffic. We open two virtual machine to public IP, and then we can connect to the virtual machine through the public IP. Other than that, we can also use the Azure Firewall to filter the traffic.
+
+---
+
+### 2023/03/08
+
+Complete all the AWS Entry Level Challenge tasks this morning, while 
+also improve the concept of AWS VPC.
+
+In the VPC, if we want ot connect to the external website, we will build 
+the Internet Gateway and the NAT Gateway. The Internet Gateway is used to
+connect to the Internet, and the NAT Gateway is used to enable the private
+subnet to connect to the Internet.
+
+Then the below is the VPC Architecture:
+
+![](../challenge/entry_level/02_vpc/imgs/aws-vpc-private.png)
+
 ### 2024/03/06
 
 上午主要了解  AWS 的網路連線，釐清了 VPC 以及 NAT 的差異
