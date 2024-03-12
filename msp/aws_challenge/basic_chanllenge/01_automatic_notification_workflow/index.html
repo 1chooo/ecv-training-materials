@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Hello Website</title>
+    <link
+      rel="stylesheet"
+      href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
+      integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u"
+      crossorigin="anonymous"
+    />
+    <script
+      src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
+      integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
+      crossorigin="anonymous"
+    ></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+  </head>
+  <style>
+    .btn-file {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-file input[type="file"] {
+      position: absolute;
+      top: 0;
+      right: 0;
+      min-width: 100%;
+      min-height: 100%;
+      font-size: 100px;
+      text-align: right;
+      filter: alpha(opacity=0);
+      opacity: 0;
+      outline: none;
+      background: white;
+      cursor: inherit;
+      display: block;
+    }
+  </style>
+
+  <script>
+    $(document).ready(function () {
+      // change the file name and preview the image
+
+      $(document).on("change", ".btn-file :file", function () {
+        var input = $(this),
+          label = input.val().replace(/\\/g, "/").replace(/.*\//, "");
+        input.trigger("fileselect", [label]);
+      });
+
+      $(".btn-file :file").on("fileselect", function (event, label) {
+        var input = $(this).parents(".input-group").find(":text"),
+          log = label;
+
+        if (input.length) {
+          input.val(log);
+        } else {
+          if (log) alert(log);
+        }
+      });
+
+      function readURL(input) {
+        if (input.files && input.files[0]) {
+          var reader = new FileReader();
+          reader.onload = function (e) {
+            $("#img-upload").attr("src", e.target.result);
+          };
+          reader.readAsDataURL(input.files[0]);
+        }
+      }
+      $("#imgInp").change(function () {
+        readURL(this);
+      });
+    });
+  </script>
+
+  <body>
+    <script src="https://sdk.amazonaws.com/js/aws-sdk-2.260.1.min.js"></script>
+    <!-- ################## TODO ################## -->
+    <script>
+      // AWS Cognito Identity Credentials
+      AWS.config.region = "<YOUR_AWS_CURRENT_REGION>";
+      AWS.config.credentials = new AWS.CognitoIdentityCredentials({
+        IdentityPoolId: "<YOUR_IDENTITY_POOL_ID>",
+      });
+    </script>
+    <!-- ################## TODO ################## -->
+
+    <nav class="navbar navbar-dark bg-dark" style="background-color: #003060">
+      <a class="navbar-brand" href="#" style="color: #ffffff">File Upload Page</a>
+    </nav>
+
+    <div class="container">
+      <div class="col-md-6">
+        <div class="form-group">
+          <label>Upload Image</label>
+          <div class="input-group">
+            <span class="input-group-btn">
+              <span class="btn btn-default btn-file"> Browse <input type="file" id="imgInp" /> </span>
+            </span>
+            <input type="text" class="form-control" readonly />
+          </div>
+          <img id="img-upload" width="100%" />
+        </div>
+        <button id="snap" class="btn btn-primary btn-lg">Click here to upload a file</button>
+      </div>
+    </div>
+  </body>
+
+  <script>
+    $("#snap").click(function () {
+      var blob = dataURItoBlob($("#img-upload").attr("src"));
+      uploadToS3(blob);
+    });
+
+    function dataURItoBlob(dataURI) {
+      var byteString;
+      if (dataURI.split(",")[0].indexOf("base64") >= 0) byteString = atob(dataURI.split(",")[1]);
+      else byteString = unescape(dataURI.split(",")[1]);
+      // separate out the mime component
+      var mimeString = dataURI.split(",")[0].split(":")[1].split(";")[0];
+      // write the bytes of the string to a typed array
+      var ia = new Uint8Array(byteString.length);
+      for (var i = 0; i < byteString.length; i++) {
+        ia[i] = byteString.charCodeAt(i);
+      }
+      return new Blob([ia], {
+        type: mimeString,
+      });
+    }
+
+    function getCurrentTime() {
+      var time = Date.now();
+      const timestamp = Math.floor(time / 1000);
+      return timestamp.toString();
+    }
+
+    function uploadToS3(blob) {
+      // ################## TODO ##################
+      var bucket = "<YOUR_S3_BUCKET_NAME>";
+      // ################## TODO ##################
+
+      var s3 = new AWS.S3({
+        params: {
+          Bucket: bucket,
+        },
+      });
+
+      // use current time to set file name
+      var objectName = getCurrentTime() + ".png";
+
+      var pic_params = {
+        Image: {
+          S3Object: {
+            Bucket: bucket,
+            Name: objectName,
+          },
+        },
+        Attributes: ["ALL"],
+      };
+
+      // upload to s3 bucket
+      s3.upload(
+        {
+          Key: objectName,
+          Body: blob,
+          ContentType: "image/png"
+        },
+        function (err, data) {
+          if (err) {
+            // console.log(err, err.stack);
+            console.log(err)
+            return alert(err);
+          }
+          alert("Successfully uploaded photo! Please wait ...");
+        }
+      );
+    }
+  </script>
+</html>
