@@ -7,7 +7,7 @@ const info = document.getElementById('info');
 const btn = document.getElementById('btn');
 
 let gameOver = false;
-let speed = 2;
+let speed = 10;
 
 class Snake {
   constructor(x, y, size) {
