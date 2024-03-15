@@ -7,8 +7,10 @@ Now, there is a request saying that the Text Detect API using the AWS SDK of Ama
 
 ![](./arch.png)
 
-Stack Overflow 我覺得最大的體會是會看到現在遇到的問題，可能十年前在地球的不知道哪個角落也有人遇到相同的問題，並且最重要的是還有人去幫忙回答，有種全球共通的感覺，並且可以練習更精準地搜尋去獲得需要的解答。
 
+## S3 Bucket Policy
+
+### Original
 
 ```json
 {
@@ -33,6 +35,9 @@ Stack Overflow 我覺得最大的體會是會看到現在遇到的問題，可�
 }
 ```
 
+
+### Worked
+
 ```json
 {
     "Version": "2012-10-17",
@@ -42,16 +47,19 @@ Stack Overflow 我覺得最大的體會是會看到現在遇到的問題，可�
             "Effect": "Allow",
             "Principal": "*",
             "Action": [
-                "s3:GetObject"
+                "s3:GetObject",
+                "s3:PutObject"
             ],
             "Resource": [
-                "challenge-s3-arn/*"
+                "arn:aws:s3:::challenge-static-website-c85813fdac070e2f/*"
             ]
         }
     ]
 }
 ```
 
+> [!NOTE]
+> Why is the below s3 policy cannot save?
 
 ```json
 {
@@ -66,37 +74,39 @@ Stack Overflow 我覺得最大的體會是會看到現在遇到的問題，可�
 				"s3:List*"
 			],
 			"Resource": [
-				"challenge-s3-arn",
-				"challenge-s3-arn/*"
+				"arn:aws:s3:::challenge-static-website-c85813fdac070e2f",
+				"arn:aws:s3:::challenge-static-website-c85813fdac070e2f/*"
 			]
 		}
 	]
 }
 ```
 
-![](./arch-final.png)
-
-
-### Research about `0.0.0.0/32`
-
-- The Default Inbound IP `0.0.0.0/32`
-
-> [!NOTE]
-> - `0.0.0.0/0`: means all ipv4 addresses.
-> - `0.0.0.0/32` means only the single IPv4 address of `0.0.0.0` - which I don’t think will mean anything in a security group as if a device has that IP address it can’t communicate on a IP network.
-
-
-
-
-
-
-`/var/www/html`
-
-```bash
-sudo yum install php -y
-sudo yum install httpd -y
-
+```json
+{
+	"Version": "2012-10-17",
+	"Statement": [
+		{
+			"Effect": "Allow",
+			"Principal": {
+				"AWS": "arn:aws:iam::571760228216:role/lab-prewarming-766-CustomS3AutoDeleteObjectsCustomR-oL88oGiCkfrI"
+			},
+			"Action": [
+				"s3:DeleteObject*",
+				"s3:GetBucket*",
+				"s3:List*"
+			],
+			"Resource": [
+				"arn:aws:s3:::challenge-static-website-c85813fdac070e2f",
+				"arn:aws:s3:::challenge-static-website-c85813fdac070e2f/*"
+			]
+		}
+	]
+}
 ```
+
+## [PROBLEM] Cannot start the API Server
+
 ```bash
 sudo amazon-linux-extras enable php7.4
 
@@ -207,6 +217,110 @@ cat /usr/lib/systemd/system/httpd.service.d/php-fpm.conf
 [Unit]
 Wants=php-fpm.service
 ```
+
+### Research about `0.0.0.0/32`
+
+| Status | Type | Protocol | Port Range | Source | Description |
+| --- | --- | --- | --- | --- | --- |
+| Not Work | HTTP | TCP | 80 | Custom `0.0.0.0/32` | from 0.0.0.0/32:80 |
+| Work | HTTP | TCP | 80 | Custom `0.0.0.0/0` | |
+
+We need to allow the `80` port to be accessed from `0.0.0.0/0` instead of `0.0.0.0/32`
+
+> [!TIP]
+> - `0.0.0.0/0`: means all ipv4 addresses.
+> - `0.0.0.0/32` means only the single IPv4 address of `0.0.0.0` - which I don’t think will mean anything in a security group as if a device has that IP address it can’t communicate on a IP network.
+
+### Check `/var/www/html`
+
+```bash
+$ cd /var/www/html
+
+$ ls
+composer.json  composer.lock  index.php  __MACOSX  vendor
+
+$ cat index.php
+<?php
+header("Access-Control-Allow-Headers: *");
+header("Access-Control-Allow-Origin: *");
+if($_SERVER['REQUEST_METHOD'] == "OPTIONS"){
+  echo "CORS OK!";
+  die();
+}
+// If you want to debug, uncomment next line.
+// ini_set("display_errors", 1);
+// Require composer autoload
+use Aws\Rekognition\RekognitionClient;
+require_once __DIR__ . '/vendor/autoload.php';
+
+// Define picture from POST
+$pict = file_get_contents("php://input");
+
+// Setup Rekognition client
+$options = [ 'region' => 'us-east-1', 'version' => 'latest' ];
+$client = new RekognitionClient($options);
+
+// Send API request
+$result = $client->detectText([ "Image" => [ "Bytes" => $pict ] ]);
+
+// [TODO] Parse response to JSON
+// API Reference: https://docs.aws.amazon.com/aws-sdk-php/v3/api/api-rekognition-2016-06-27.html#detecttext
+$output = [ "text" => "", "src_ip" => $_SERVER["REMOTE_ADDR"]];
+
+// JSON Output
+header("Content-Type: Application/json");
+print_r(json_encode($output));
+```
+
+### Install PHP and Apache
+
+```bash
+$ sudo yum install php -y
+Loaded plugins: extras_suggestions, langpacks, priorities, update-motd
+amzn2-core                                                                                                          | 3.6 kB  00:00:00     
+Package php-7.4.33-1.amzn2.x86_64 already installed and latest version
+Nothing to do
+
+$ sudo yum install httpd -y
+Loaded plugins: extras_suggestions, langpacks, priorities, update-motd
+Package httpd-2.4.58-1.amzn2.x86_64 already installed and latest version
+Nothing to do
+```
+
+
+### Start the Apache Server
+
+```bash
+$ sudo service httpd start
+Redirecting to /bin/systemctl start httpd.service
+```
+
+## Edit the Permission to the Rekognition API
+
+### Edit `index.html` to use the correct endpoint
+
+```html
+const api_url = "<CHANGE_TO_YOUR_ENDPOINT>";
+```
+
+
+> [!NOTE]
+> edit `/var/www/html` in the ec2 instance
+> 
+> `sudo vi /var/www/html/index.php` to edit the file
+
+## Improve the User Experience
+
+### [QUESTION] Add Application Balancer between the s3 bucket and ec2 instance
+
+Load Balancer, CloudFront
+
+
+https://docs.aws.amazon.com/elasticloadbalancing/latest/application/create-application-load-balancer.html
+
+
+
+![](./arch-final.png)
 
 - https://docs.aws.amazon.com/AmazonS3/latest/userguide/HostingWebsiteOnS3Setup.html
 - https://docs.aws.amazon.com/AmazonS3/latest/userguide/CustomErrorDocSupport.html
