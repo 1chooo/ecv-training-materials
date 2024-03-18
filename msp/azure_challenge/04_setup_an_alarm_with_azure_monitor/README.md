@@ -8,6 +8,8 @@ By the end of this lab, you will be able to:
 - Create the alert rule and action group
 
 
+![](./alerts.png)
+
 ```bash
 ssh <your vm user name>@<your public ip>
 ```
