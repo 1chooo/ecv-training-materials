@@ -51,15 +51,13 @@ Now, there is a request saying that the Text Detect API using the AWS SDK of Ama
                 "s3:PutObject"
             ],
             "Resource": [
-                "arn:aws:s3:::challenge-static-website-c85813fdac070e2f/*"
+                "arn:aws:s3:::challenge-static-website-c830a84cb6a7d9bd/*"
             ]
         }
     ]
 }
 ```
 
-> [!NOTE]
-> Why is the below s3 policy cannot save?
 
 ```json
 {
@@ -74,41 +72,49 @@ Now, there is a request saying that the Text Detect API using the AWS SDK of Ama
 				"s3:List*"
 			],
 			"Resource": [
-				"arn:aws:s3:::challenge-static-website-c85813fdac070e2f",
-				"arn:aws:s3:::challenge-static-website-c85813fdac070e2f/*"
+				"arn:aws:s3:::challenge-static-website-c8ef5e4fbc3bccf8",
+				"arn:aws:s3:::challenge-static-website-c8ef5e4fbc3bccf8/*"
 			]
 		}
 	]
 }
 ```
 
+> [!NOTE]
+> Why is the below s3 policy cannot save?
+The above will show the ERROR Message: `Error: Invalid json format`, that is `Principal` could not be used `{}` when only `*` is used. Therefore, it should be `"Principal": "*"` instead of `"Principal": { "*" }`
+
+
+> [!NOTE]
+> But why I will get 403 forbidden when I try to access the s3 bucket?
+
+
 ```json
 {
-	"Version": "2012-10-17",
-	"Statement": [
-		{
-			"Effect": "Allow",
-			"Principal": {
-				"AWS": "arn:aws:iam::571760228216:role/lab-prewarming-766-CustomS3AutoDeleteObjectsCustomR-oL88oGiCkfrI"
-			},
-			"Action": [
-				"s3:DeleteObject*",
-				"s3:GetBucket*",
-				"s3:List*"
-			],
-			"Resource": [
-				"arn:aws:s3:::challenge-static-website-c85813fdac070e2f",
-				"arn:aws:s3:::challenge-static-website-c85813fdac070e2f/*"
-			]
-		}
-	]
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Principal": "*",
+            "Action": [
+                "s3:DeleteObject*",
+                "s3:GetBucket*",
+				"s3:PutoObject*",
+                "s3:List*"
+            ],
+            "Resource": [
+                "arn:aws:s3:::challenge-static-website-c8ef5e4fbc3bccf8",
+                "arn:aws:s3:::challenge-static-website-c8ef5e4fbc3bccf8/*"
+            ]
+        }
+    ]
 }
 ```
 
 ## [PROBLEM] Cannot start the API Server
 
 ```bash
-sudo amazon-linux-extras enable php7.4
+$ sudo amazon-linux-extras enable php7.4
 
   2  httpd_modules            available    [ =1.0  =stable ]
   3  memcached1.5             available    \
@@ -182,13 +188,13 @@ Now you can install:
 
 
 ```bash
-sudo service httpd start
+$ sudo service httpd start
 
 Redirecting to /bin/systemctl start httpd.service
 ```
 
 ```bash
-status httpd.service
+$ status httpd.service
 ● httpd.service - The Apache HTTP Server
    Loaded: loaded (/usr/lib/systemd/system/httpd.service; disabled; vendor preset: disabled)
    Active: active (running) since Wed 2024-03-13 09:29:44 UTC; 1min 48s ago
@@ -207,13 +213,14 @@ Mar 13 09:29:44 ip-10-2-0-237.us-west-2.compute.internal systemd[1]: Starting Th
 Mar 13 09:29:44 ip-10-2-0-237.us-west-2.compute.internal systemd[1]: Started The Apache HTTP Server.
 ```
 
-https://talk.plesk.com/threads/fpm-application-server-by-apache-stopped-working.354355/
+[FPM application server by apache stopped working](https://talk.plesk.com/threads/fpm-application-server-by-apache-stopped-working.354355/)
+
 ```bash
-sudo service httpd restart
+$ sudo service httpd restart
 ```
 
 ```bash
-cat /usr/lib/systemd/system/httpd.service.d/php-fpm.conf 
+$ cat /usr/lib/systemd/system/httpd.service.d/php-fpm.conf 
 [Unit]
 Wants=php-fpm.service
 ```
@@ -303,44 +310,64 @@ Redirecting to /bin/systemctl start httpd.service
 const api_url = "<CHANGE_TO_YOUR_ENDPOINT>";
 ```
 
+> [!WARNING]
+> To avoid `405 error`, change to the EC2 instance public IP address, if set the s3 bucket as the endpoint, it will show `405 error`.
+
+
+Error Message: 
+```bash
+[Mon Mar 18 08:11:02.770829 2024] [php7:error] [pid 32653] [client 10.2.1.186:14670] PHP Fatal error:  Uncaught exception 'Aws\\Rekognition\\Exception\\RekognitionException' with message 'Error executing "DetectText" on "https://rekognition.us-east-1.amazonaws.com"; AWS HTTP error: Client error: `POST https://rekognition.us-east-1.amazonaws.com` resulted in a `400 Bad Request` response:\n{"__type":"ValidationException","message":"1 validation error detected: Value 'java.nio.HeapByteBuffer[pos=0 lim=0 cap=0 (truncated...)\n ValidationException (client): 1 validation error detected: Value 'java.nio.HeapByteBuffer[pos=0 lim=0 cap=0]' at 'image.bytes' failed to satisfy constraint: Member must have length greater than or equal to 1 - {"__type":"ValidationException","message":"1 validation error detected: Value 'java.nio.HeapByteBuffer[pos=0 lim=0 cap=0]' at 'image.bytes' failed to satisfy constraint: Member must have length greater than or equal to 1"}'\n\nGuzzleHttp\\Exception\\ClientException: Client error: `POST https://rekognition.us-east-1.amazonaws.com` resulted in a `400 Bad Request` response:\n{"__type":"ValidationEx in /var/www/html/vendor/aws/aws-sdk-php/src/WrappedHttpHandler.php on line 195
+```
 
 > [!NOTE]
 > edit `/var/www/html` in the ec2 instance
 > 
 > `sudo vi /var/www/html/index.php` to edit the file
 
+```php
+// [TODO] Parse response to JSON
+$output = [ "text" => $result["TextDetections"][0]["DetectedText"], "src_ip" => $_SERVER["REMOTE_ADDR"]];
+```
+
+
 ## Improve the User Experience
 
 ### [QUESTION] Add Application Balancer between the s3 bucket and ec2 instance
 
-Load Balancer, CloudFront
+- [Create an Application Load Balancer](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/create-application-load-balancer.html)
+- [What is an Application Load Balancer?](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/introduction.html)
+- [AWS Load Balance 基本概念介紹](https://medium.com/@chihsuan/aws-load-balance-%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5%E4%BB%8B%E7%B4%B9-33c30a59b596)
 
+1. add target group
+2. add Load Balancer
+3. add CloudFront (don't enable the security)
 
-https://docs.aws.amazon.com/elasticloadbalancing/latest/application/create-application-load-balancer.html
+> [!NOTE]
+> We need to add the EC2 to the Target Group; however, it will show unhealthy at first. We need to get back to `/var/www/html/` and create a any other `YOUR_NAME.html` to let Application Load Balancer to check the health of the EC2 instance. Because if the Application Load Balancer `GET` the `/YOUR_NAME.html` and it returns `200`, then the EC2 instance is healthy. Finally, we can make sure our EC2 instance is healthy and the Application Load Balancer can forward the request to the EC2 instance.
 
+### Some Hard Work
+
+1. try to add the `YOUR_NAME.html` to the `/var/www/html/` and then change the `YOUR_NAME.html` to the path of the target in the target group
+2. Change the bucket policy to allow all Header and Origin
+3. Add the CORS in the s3 bucket policy
 
 
 ![](./arch-final.png)
 
-- https://docs.aws.amazon.com/AmazonS3/latest/userguide/HostingWebsiteOnS3Setup.html
-- https://docs.aws.amazon.com/AmazonS3/latest/userguide/CustomErrorDocSupport.html
-- https://docs.aws.amazon.com/AmazonS3/latest/userguide/IndexDocumentSupport.html
+### Some Sources
 
-
-https://forums.fedoraforum.org/showthread.php?291585-Can-t-start-httpd-service!
-
-https://serverfault.com/questions/1088121/systemctl-restart-httpd-failed-to-start-the-apache-http-server-httpd-pid-already
-
-https://www.linuxquestions.org/questions/linux-software-2/php-file-hosted-locally-in-var-www-html-shows-blank-in-browser-913439/
-
-https://unix.stackexchange.com/questions/468058/systemctl-status-shows-vendor-preset-disabled
-
-https://serverfault.com/questions/625261/root-directory-var-www-html-apach2-on-ubuntu-14-04
+- [https://docs.aws.amazon.com/AmazonS3/latest/userguide/HostingWebsiteOnS3Setup.html](https://docs.aws.amazon.com/AmazonS3/latest/userguide/HostingWebsiteOnS3Setup.html)
+- [Configuring a custom error document](https://docs.aws.amazon.com/AmazonS3/latest/userguide/CustomErrorDocSupport.html)
+- [Configuring an index document](https://docs.aws.amazon.com/AmazonS3/latest/userguide/IndexDocumentSupport.html)
+- [Can't start httpd service!](https://forums.fedoraforum.org/showthread.php?291585-Can-t-start-httpd-service!)
+- [systemctl restart httpd Failed to start The Apache HTTP Server httpd pid already running](https://serverfault.com/questions/1088121/systemctl-restart-httpd-failed-to-start-the-apache-http-server-httpd-pid-already)
+- [[SOLVED] PHP File hosted locally in /var/www/html shows blank in browser](https://www.linuxquestions.org/questions/linux-software-2/php-file-hosted-locally-in-var-www-html-shows-blank-in-browser-913439/)
+- [systemctl status shows vendor preset: disabled](https://unix.stackexchange.com/questions/468058/systemctl-status-shows-vendor-preset-disabled)
+- [Root Directory /var/www/html : Apach2 on Ubuntu 14.04](https://serverfault.com/questions/625261/root-directory-var-www-html-apach2-on-ubuntu-14-04)
 
 
 
 
 
 [^1]: [Is there a difference between 0.0.0.0/0 and 0.0.0.0/32 ?](https://www.reddit.com/r/aws/comments/uh0hzm/is_there_a_difference_between_00000_and_000032/?rdt=60970)
-
 
