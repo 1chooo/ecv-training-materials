@@ -328,6 +328,13 @@ Example of `YOUR_NAME.html`:
 3. Add the CORS in the s3 bucket policy
 
 > [!NOTE]
+> To debug the Apache Server, you should uncomment the following code in the `/var/www/html/index.php` file:
+> ```php
+> // If you want to debug, uncomment next line.
+> ini_set("display_errors", 1);
+> ```
+
+> [!NOTE]
 > Amazon S3 - 405 Method Not Allowed Error -> Check if the `api_url` is the EC2 instance public IP address. [^2]
 
 #### Change the **CORS Policy** in the S3 Bucket
@@ -407,3 +414,4 @@ You may also need to modify the S3 bucket policy to allow all actions for comple
 [^3]: [Rekognition/Textract APIs that require images as input are not working](https://github.com/aws/aws-sdk-js-v3/issues/854)
 [^4]: [dynamodb throws "Cannot read property 'byteLength' of undefined" when trying to put binary data](https://github.com/aws/aws-sdk-js-v3/issues/771)
 [^5]: [Amazon S3 and Cloudfront cache, how to clear cache or synchronize their cache](https://stackoverflow.com/questions/22021651/amazon-s3-and-cloudfront-cache-how-to-clear-cache-or-synchronize-their-cache)
+
