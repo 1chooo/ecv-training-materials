@@ -58,60 +58,15 @@ Now, there is a request saying that the Text Detect API using the AWS SDK of Ama
 }
 ```
 
-
-```json
-{
-	"Version": "2012-10-17",
-	"Statement": [
-		{
-			"Effect": "Allow",
-			"Principal": "*",
-			"Action": [
-				"s3:DeleteObject*",
-				"s3:GetBucket*",
-				"s3:List*"
-			],
-			"Resource": [
-				"arn:aws:s3:::challenge-static-website-c8ef5e4fbc3bccf8",
-				"arn:aws:s3:::challenge-static-website-c8ef5e4fbc3bccf8/*"
-			]
-		}
-	]
-}
-```
-
 > [!NOTE]
 > Why is the below s3 policy cannot save?
 The above will show the ERROR Message: `Error: Invalid json format`, that is `Principal` could not be used `{}` when only `*` is used. Therefore, it should be `"Principal": "*"` instead of `"Principal": { "*" }`
 
 
 > [!NOTE]
-> But why I will get 403 forbidden when I try to access the s3 bucket?
+> But why I will get 403 forbidden when I try to access the s3 bucket? (Maybe it's the problem of challenge)
 
-
-```json
-{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Effect": "Allow",
-            "Principal": "*",
-            "Action": [
-                "s3:DeleteObject*",
-                "s3:GetBucket*",
-				"s3:PutoObject*",
-                "s3:List*"
-            ],
-            "Resource": [
-                "arn:aws:s3:::challenge-static-website-c8ef5e4fbc3bccf8",
-                "arn:aws:s3:::challenge-static-website-c8ef5e4fbc3bccf8/*"
-            ]
-        }
-    ]
-}
-```
-
-## [PROBLEM] Cannot start the API Server
+## [SOLVED] [PROBLEM] Cannot start the API Server
 
 ```bash
 $ sudo amazon-linux-extras enable php7.4
@@ -314,7 +269,7 @@ const api_url = "<CHANGE_TO_YOUR_ENDPOINT>";
 > To avoid `405 error`, change to the EC2 instance public IP address, if set the s3 bucket as the endpoint, it will show `405 error`.
 
 
-Error Message: 
+Error Message: [^3], [^4]
 ```bash
 [Mon Mar 18 08:11:02.770829 2024] [php7:error] [pid 32653] [client 10.2.1.186:14670] PHP Fatal error:  Uncaught exception 'Aws\\Rekognition\\Exception\\RekognitionException' with message 'Error executing "DetectText" on "https://rekognition.us-east-1.amazonaws.com"; AWS HTTP error: Client error: `POST https://rekognition.us-east-1.amazonaws.com` resulted in a `400 Bad Request` response:\n{"__type":"ValidationException","message":"1 validation error detected: Value 'java.nio.HeapByteBuffer[pos=0 lim=0 cap=0 (truncated...)\n ValidationException (client): 1 validation error detected: Value 'java.nio.HeapByteBuffer[pos=0 lim=0 cap=0]' at 'image.bytes' failed to satisfy constraint: Member must have length greater than or equal to 1 - {"__type":"ValidationException","message":"1 validation error detected: Value 'java.nio.HeapByteBuffer[pos=0 lim=0 cap=0]' at 'image.bytes' failed to satisfy constraint: Member must have length greater than or equal to 1"}'\n\nGuzzleHttp\\Exception\\ClientException: Client error: `POST https://rekognition.us-east-1.amazonaws.com` resulted in a `400 Bad Request` response:\n{"__type":"ValidationEx in /var/www/html/vendor/aws/aws-sdk-php/src/WrappedHttpHandler.php on line 195
 ```
@@ -332,7 +287,7 @@ $output = [ "text" => $result["TextDetections"][0]["DetectedText"], "src_ip" => 
 
 ## Improve the User Experience
 
-### [QUESTION] Add Application Balancer between the s3 bucket and ec2 instance
+### [SOLVED] [QUESTION] Add Application Balancer between the s3 bucket and ec2 instance
 
 - [Create an Application Load Balancer](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/create-application-load-balancer.html)
 - [What is an Application Load Balancer?](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/introduction.html)
@@ -342,14 +297,92 @@ $output = [ "text" => $result["TextDetections"][0]["DetectedText"], "src_ip" => 
 2. add Load Balancer
 3. add CloudFront (don't enable the security)
 
+Allowed HTTP methods
+- [x] GET, HEAD, OPTIONS, PUT, POST, PATCH, DELETE
+
+Web Application Firewall (WAF)
+- [x] Do not enable security protections (i.e., there is no **Custom SSL certificate** in the Lab)
+
 > [!NOTE]
 > We need to add the EC2 to the Target Group; however, it will show unhealthy at first. We need to get back to `/var/www/html/` and create a any other `YOUR_NAME.html` to let Application Load Balancer to check the health of the EC2 instance. Because if the Application Load Balancer `GET` the `/YOUR_NAME.html` and it returns `200`, then the EC2 instance is healthy. Finally, we can make sure our EC2 instance is healthy and the Application Load Balancer can forward the request to the EC2 instance.
+
+Example of `YOUR_NAME.html`:
+```html
+<html>
+
+<head>
+    <title>Test</title>
+</head>
+
+<body>
+    <div>1chooo</div>
+</body>
+
+</html>
+```
 
 ### Some Hard Work
 
 1. try to add the `YOUR_NAME.html` to the `/var/www/html/` and then change the `YOUR_NAME.html` to the path of the target in the target group
 2. Change the bucket policy to allow all Header and Origin
 3. Add the CORS in the s3 bucket policy
+
+> [!NOTE]
+> Amazon S3 - 405 Method Not Allowed Error -> Check if the `api_url` is the EC2 instance public IP address. [^2]
+
+#### Change the **CORS Policy** in the S3 Bucket
+```json
+[
+    {
+        "AllowedHeaders": [
+            "*"
+        ],
+        "AllowedMethods": [
+            "PUT",
+            "POST",
+            "DELETE"
+        ],
+        "AllowedOrigins": [
+            "*"
+        ],
+        "ExposeHeaders": [
+            "x-amz-server-side-encryption",
+            "x-amz-request-id",
+            "x-amz-id-2"
+        ],
+        "MaxAgeSeconds": 3000
+    }
+]
+```
+
+You may also need to modify the S3 bucket policy to allow all actions for completely public access.
+
+#### Change the **Bucket Policy** in the S3 Bucket
+```json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "PublicReadGetObject",
+            "Effect": "Allow",
+            "Principal": "*",
+            "Action": [
+                "*"
+            ],
+            "Resource": [
+                "arn:aws:s3:::challenge-static-website-c830a84cb6a7d9bd/*"
+            ]
+        }
+    ]
+}
+```
+
+> [!NOTE]
+> How to clear the cache of the CloudFront? [^5]
+> 1. Go to your distribution in the CloudFront console.
+> 2. Click 'Invalidations' tab
+> 3. Click 'Create invalidation' button.
+> 4. Make the **object path** into `/*` to clear cache
 
 
 ![](./arch-final.png)
@@ -370,4 +403,7 @@ $output = [ "text" => $result["TextDetections"][0]["DetectedText"], "src_ip" => 
 
 
 [^1]: [Is there a difference between 0.0.0.0/0 and 0.0.0.0/32 ?](https://www.reddit.com/r/aws/comments/uh0hzm/is_there_a_difference_between_00000_and_000032/?rdt=60970)
-
+[^2]: [Amazon S3 - 405 Method Not allowed using POST (Although I allowed POST on the bucket)](https://stackoverflow.com/questions/32033597/amazon-s3-405-method-not-allowed-using-post-although-i-allowed-post-on-the-bu)
+[^3]: [Rekognition/Textract APIs that require images as input are not working](https://github.com/aws/aws-sdk-js-v3/issues/854)
+[^4]: [dynamodb throws "Cannot read property 'byteLength' of undefined" when trying to put binary data](https://github.com/aws/aws-sdk-js-v3/issues/771)
+[^5]: [Amazon S3 and Cloudfront cache, how to clear cache or synchronize their cache](https://stackoverflow.com/questions/22021651/amazon-s3-and-cloudfront-cache-how-to-clear-cache-or-synchronize-their-cache)
