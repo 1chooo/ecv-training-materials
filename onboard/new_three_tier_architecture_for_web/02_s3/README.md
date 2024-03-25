@@ -16,7 +16,7 @@ Data Consistency Model
 Multi-part upload:
 - Use Lifecycle policy
 
-```
+```yml
 <LifecycleConfiguration>
     < Rule>
         <ID>sample-rule</ID>
@@ -153,7 +153,12 @@ frequent access tier <-> infrequent access tier
 
 ## S3 Lifecycle Management
 
+---
 
+## S3 Access Statement
 
-
+Public 有三種狀態
+1. 全部公開
+2. 部分公開
+3. 全部不公開
 
