@@ -1,0 +1,56 @@
+service: loyalty-app
+frameworkVersion: '3'
+provider:
+    name: aws
+    region: us-west-2
+    runtime: Python 3.12
+
+# https://www.serverless.com/framework/docs/providers/aws/guide/serverless.yml#functions
+functions:
+    createLoyaltyCardFunction:
+        name: createLoyaltyCard
+        role: arn:aws:iam::526211359242:role/lamda-execution-role
+        handler: handler.create_loyalty_card
+        events:
+        - http:
+            path: /loyalty-cards
+            method: POST
+
+functions:
+    createLoyaltyCardFunction:
+        name: getOneLoyaltyCard
+        role: arn:aws:iam::526211359242:role/lamda-execution-role
+        handler: handler.create_loyalty_card
+        events:
+        - http:
+            path: /loyalty-cards/{id}
+            method: GET
+
+functions:
+    createLoyaltyCardFunction:
+        name: getAllLoyaltyCard
+        role: arn:aws:iam::526211359242:role/lamda-execution-role
+        handler: handler.create_loyalty_card
+        events:
+        - http:
+            path: /loyalty-cards
+            method: GET
+    # TODO
+
+package:
+    exclude:
+        - venv/**
+        - node_modules/**
+resources:
+    Resources:
+        LoyaltyCardDynamodbTable:
+            Type: AWS::DynamoDB::Table
+            Properties:
+                AttributeDefinitions:
+                - AttributeName: <attribute-name>
+                  AttributeType: <attribute-type>
+                KeySchema:
+                - AttributeName: <attribute-name>
+                  KeyType: HASH
+                BillingMode: PAY_PER_REQUEST
+                TableName: loyalty-table
