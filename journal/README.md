@@ -8,6 +8,46 @@ https://github.com/golang-standards/project-layout
 
 https://makeoptim.com/golang/standards/project-layout/
 
+## 2024/03/26
+
+This morning, I dedicated a significant amount of time to discussing how to effectively collaborate with the team to complete the project. We defined the roles for the first sprint, which include a Product Owner, Tech Leader, two AI Engineers, a Data Engineer, and a Backend Engineer. Additionally, I conducted further research on the project and organized a collaborative workshop. We will be using Slack, GitHub Project, and Notion as our collaboration tools. Furthermore, I will establish clear collaboration rules for the entire team to ensure that everyone follows them and successfully completes the project.
+
+## 2024/03/25
+
+This morning we discussed the details of Scrum. Currently, we have decided that the first Sprint will focus on **creating the POC for the entire project**. Therefore, our top priorities at the moment are as follows:
+
+- [ ] Understand the Scrum process. I will supply some Scrum resources for everyone to reference.
+- [ ] Explore the scope of deliverables further. We need to determine the specific goals for each Sprint.
+- [ ] Each team member should brainstorm User Stories for each topic (Model, Data, Test, Cloud Infra, Demo Platform). Please try to complete this by Wednesday (2024/03/27) so that we can define the User Stories for this Sprint.
+- [ ] Once we have defined the User Stories, we need to assign each person their responsibilities and tasks. Ideally, we should start this on Thursday (2024/03/28).
+- [ ] We need to discuss a fixed daily sync time for everyone to track progress and ensure it aligns with the Sprint's progress.
+- [ ] We need to plan the entire project workflow, including Planning, Daily Scrum, Review, Retrospective, and how to ensure the project stays on schedule.
+
+We arrange the next meeting time, and I also learn the concept of the Scrum and the Sprint. I will share the resources with the team to help them understand the concept of Scrum and Sprint. Also, I dig a lot of toy example with the type of LLM and AWS Line Bot.
+
+## 2024/03/22
+
+This morning, I dedicated time to the SAA exam and reviewed the concepts of Security Group and Network Access Control Lists. In the afternoon, I expanded my knowledge on Docker, Kubernetes, and Terraform. I'm also thrilled that my Challenge notes will assist other interns in completing their challenges.
+
+
+## 2024/03/20
+
+This morning, I dedicated a significant amount of time to researching AWS SAM and Serverless. I also spent time practicing for the SAA exam. I discovered that AWS SAM is a highly convenient tool for deploying serverless applications, and it is incredibly user-friendly.
+
+In the afternoon, we had a meeting to further discuss the topic of side projects during the internship era.
+
+Additionally, I explored various tech stacks, including Terraform, Prowler, Containerize, AWS Lambda Container, and the differences between Security Groups and Network Access Control Lists. I have decided to write a blog post about these topics and delve deeper into them.
+
+## 2024/03/19
+
+This morning, I worked on the Challenge - Fixing the Text Detection API and shared my progress with the group. I documented all the errors I encountered and investigated them to find the root causes. Additionally, I studied for the SAA exam to enhance my knowledge.
+
+In the afternoon, I conducted research on serverless architecture for the Cloud Native Developer Challenge - Create a simple app in Lambda and DynamoDB with Serverless Framework.
+
+## 2024/03/18
+
+This day, I spend the whole day to debug the Challenge - Fixing the Text Detection Api, I have two problems, the first is that I cannot get the correct result from the EC2 server, the second one is that I cannot add the cloudfront and Application Load Balancer to optimizer the performance. Therefore, I discuss with the mentor - Jessie, and she led me to try a lot of things, such as S3 bucket policy, CORS, Apache Server, then we found that I made the stupid result, I add the frontend endpoint as the goal of the frontend, which results in the 405 error because it will never go to the backend server. After I change the endpoint to the backend server, it works. Also, I add the `check_health.html` in the `/var/www/html/` to let the Application Load Balancer to check the health of the server. Finally, I complete the challenge and write the document to help other interns to solve the same problem.
+
 ## 2024/03/15
 
 This morning, I complete the Azure challenge - Set up an Alarm with Azure Monitor, I am stepped by the monitor dashboard and the alert rule. But after I did it twice, I successfully complete the challenge.
